@@ -27,6 +27,9 @@ using CTCT.Components.AccountService;
 using CTCT.Components.EmailCampaigns;
 using CTCT.Exceptions;
 
+using WebInfo;
+using WebInfo.Components;
+
 using Verifalia.Api;
 
 public partial class Pages_LeadsReceiver2 : System.Web.UI.Page
@@ -66,7 +69,7 @@ public partial class Pages_LeadsReceiver2 : System.Web.UI.Page
     public static MailAddress from = new MailAddress("leadsreceiver@uncleharry.biz", "Leads Receiver");
     public static MailAddress torene = new MailAddress("4438255040@tmomail.net", "René Marçel Hugentobler");
     public static MailAddress toharry = new MailAddress("4109673455@txt.att.net", "Harry Raker");
-    public static MailAddress totatyana = new MailAddress("4104460158@tmomail.net", "Tatyana Neudecker");
+    public static MailAddress totatyana = new MailAddress("4104460158@tmomail.net", "Tatyana Drobotova");
 
     HSoft.SQL.SqlServer _sql = new SqlServer(System.Configuration.ConfigurationManager.ConnectionStrings["ClientManager"].ConnectionString);
     String ssql = String.Empty;
@@ -75,19 +78,42 @@ public partial class Pages_LeadsReceiver2 : System.Web.UI.Page
 
     protected void sendSMS2(string sheader, string semail, string sAssignedToId)
     {
+        sendSMS2(sheader, semail, sAssignedToId, string.Empty);
+    }
+
+    protected void sendSMS2(string sheader, string semail, string sAssignedToId, string sreferrer)
+    {
         if (_sheader.Length > 0)
         {
             // send txt to salesperson, Tatyana, me and Harry
-            foreach (String _sguid in new string[] { sAssignedToId, "0BA4012E-5541-4A76-92BB-C7122344DC3A", "DCDB22C2-65F4-46E4-91D1-CC123F83DCE2", "7D5AA961-5478-4FA1-B5DB-D6A2071ED834" })
-//            foreach (String _sguid in new string[] { "0BA4012E-5541-4A76-92BB-C7122344DC3A", "DCDB22C2-65F4-46E4-91D1-CC123F83DCE2", "7D5AA961-5478-4FA1-B5DB-D6A2071ED834" })
-//            foreach (String _sguid in new string[] { "DCDB22C2-65F4-46E4-91D1-CC123F83DCE2", "0BA4012E-5541-4A76-92BB-C7122344DC3A" })
+            foreach (String _sguid in new string[] { sAssignedToId, "DCDB22C2-65F4-46E4-91D1-CC123F83DCE2", "7D5AA961-5478-4FA1-B5DB-D6A2071ED834" })
+                // foreach (String _sguid in new string[] { sAssignedToId, "0BA4012E-5541-4A76-92BB-C7122344DC3A", "DCDB22C2-65F4-46E4-91D1-CC123F83DCE2", "7D5AA961-5478-4FA1-B5DB-D6A2071ED834" })
+                // foreach (String _sguid in new string[] { "0BA4012E-5541-4A76-92BB-C7122344DC3A", "DCDB22C2-65F4-46E4-91D1-CC123F83DCE2", "7D5AA961-5478-4FA1-B5DB-D6A2071ED834" })
+                // foreach (String _sguid in new string[] { "DCDB22C2-65F4-46E4-91D1-CC123F83DCE2", "0BA4012E-5541-4A76-92BB-C7122344DC3A" })
             {
                 try
                 {
+                    // hack to skip salesperson for shareasale links
+                    if (sreferrer.Contains("shareasale"))
+                    {
+                        if (_sguid == "44F7B957-4AA9-466F-B5C8-8840586157B6")       // Frank
+                        {
+                            continue;
+                        }
+                        else
+                        {
+                            if (!semail.Contains("SS-"))
+                            {
+                                NameValueCollection qscoll = HttpUtility.ParseQueryString(sreferrer);
+                                semail = String.Format("SS-{0} {1}", qscoll[1].ToString(), semail);
+                            }
+                        }
+                    }
+                    
                     ssql = String.Format("SELECT e.DisplayName,e.Phone,s.EMail FROM Employee e,_SMSProviders s WHERE UPPER(e.Id) = '{0}' AND e.isdeleted = 0 AND s.Id = e.Provider AND s.isdeleted = 0", _sguid.ToUpper());
                     DataRow _sms = _sql.GetRow(ssql);
 
-                    if (semail.Length > 139 - sheader.Length) { semail = semail.Substring(0, 139 - sheader.Length); };
+                    if (semail.Length > 255 - sheader.Length) { semail = semail.Substring(0, 255 - sheader.Length); };
                     String sendto = String.Format("{0}@{1}", _sms["Phone"].ToString(), _sms["EMail"].ToString());
 
                     ssql = String.Format("INSERT INTO _auditt([Table], Field, OldValue, NewValue) VALUES('{0}','{1}','{2}','{3}')",
@@ -133,6 +159,14 @@ public partial class Pages_LeadsReceiver2 : System.Web.UI.Page
     protected void Page_Load(object sender, EventArgs e)
     {
 
+        HttpCookieCollection _Cookies = Request.Cookies;
+        NameValueCollection _Form = Request.Form;
+        NameValueCollection _QueryString = Request.QueryString;
+        string _UserHostAddress = Request.UserHostAddress;
+
+        WebInfo.HTMLPageInfo _pi = new HTMLPageInfo(_QueryString, _UserHostAddress, _Form, _Cookies);
+//        WebInfo.HTMLPageInfo _pi = new HTMLPageInfo(_QueryString, _UserHostAddress, _Form);
+
         NameValueCollection nvc = Request.Form;
 
         String strName = String.Empty;
@@ -141,6 +175,8 @@ public partial class Pages_LeadsReceiver2 : System.Web.UI.Page
         String dtePostDate = String.Empty;
         String strNote = String.Empty;
         String strSource = "unknown";
+        String strsourcePage = String.Empty;
+        String strreferrerUrl = String.Empty;
         int intID = -1;
 
 
@@ -156,6 +192,18 @@ public partial class Pages_LeadsReceiver2 : System.Web.UI.Page
 //                try { Tools.sendSMS("leadsreceiver@uncleharry.biz", torene.Address, "Lead SMS error", String.Format("*{0} {1}", ex.Message.ToString(), ssql)); }
 //                catch { }
 //            }
+
+            try
+            {
+                _sql.Execute(String.Format("INSERT INTO LeadReceived(Data) VALUES('{0}')", Request.Form));
+            }
+            catch { }
+
+            try
+            {
+                _pi.Save();
+            }
+            catch { }
 
             TimeZoneInfo edtZone = TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time");
             DateTime timeUtc = DateTime.UtcNow;
@@ -187,14 +235,31 @@ public partial class Pages_LeadsReceiver2 : System.Web.UI.Page
             }
             strSource = "Video Lead";
 
+            if ((strEmail.Length == 0) && (strPhone.Length == 0) && (strNote.Length == 0))
+            {
+                Response.Redirect("https://uncleharry.com");
+            }
+
             // skip over spam
             if (
                 (strName.ToUpper().Contains("RAY BAN ")) 
-                ||  (strEmail.Contains("*") &&  strEmail.ToUpper().Contains("GMAIL.COM")) 
+                || (strEmail.Contains("*") &&  strEmail.ToUpper().Contains("GMAIL.COM"))
+                || (strNote.Contains("http:"))
                 )
             {
                 Response.Redirect("https://www.fcc.gov/guides/spam-unwanted-text-messages-and-email");
             }
+
+            if (!string.IsNullOrEmpty(nvc["sourcePage"]))
+            {
+                strsourcePage = nvc["sourcePage"];
+            }
+
+            if (!string.IsNullOrEmpty(nvc["referrerUrl"]))
+            {
+                strreferrerUrl = nvc["referrerUrl"];
+            }
+
 
             txtName.Text = strName;
             txtEmail.Text = strEmail;
@@ -202,7 +267,7 @@ public partial class Pages_LeadsReceiver2 : System.Web.UI.Page
             txtComments.Text = strNote;
 
             String sAssignedToId = "";
-            if (AddLead(ref intID, strName, strEmail, strPhone, edtTime, strSource, strNote, out sAssignedToId))
+            if (AddLead(ref intID, strName, strEmail, strPhone, edtTime, strSource, strNote, strsourcePage, strreferrerUrl, out sAssignedToId))
             {
                 if (String.IsNullOrEmpty(txtError.Text))
                 {
@@ -213,10 +278,9 @@ public partial class Pages_LeadsReceiver2 : System.Web.UI.Page
 
                     String noHtml = Regex.Replace(strNote.Trim(), @"<[^>]*(>|$)|&nbsp;|&zwnj;|&raquo;|&laquo;", " ").Trim();
                     String stext = String.Format("{3:t} {0} {1} {2} {4}", strName.Trim(), strEmail.Trim(), strPhone.Trim(), DateTime.Now, noHtml);
-                    sendSMS2(_sheader, stext, sAssignedToId);
+                    sendSMS2(_sheader, stext, sAssignedToId, strreferrerUrl);
                     sendEmail(strEmail,strName,"Your Income Potential");
-
-                    Response.Redirect("http://uncleharry.com/thank-you/");
+		            Response.Redirect(String.Format("http://uncleharry.com/thank-you/?TRACKINGNUMBER={0}",intID));
                 }
                 ssql = String.Format("INSERT INTO _auditt([Table], [Field], [Key], OldValue, NewValue, createdby) " +
                                      "VALUES ('{0}','{1}','{4}','{2}','{3}','{4}') ", "LeadReceiver", "ADD", intID, txtError.Text.Replace("'","''"), Guid.Empty);
@@ -231,7 +295,7 @@ public partial class Pages_LeadsReceiver2 : System.Web.UI.Page
         }
     }
    
-    private Boolean AddLead(ref int intID, String strName, String strEmail, String strPhone, DateTime dtePostDate, String strSource, string strNote,  out String sAssignedToId)
+    private Boolean AddLead(ref int intID, String strName, String strEmail, String strPhone, DateTime dtePostDate, String strSource, string strNote, string strsourcePage, string strreferrerUrl, out String sAssignedToId)
     {
 
         Boolean blnValidEntry = false;
@@ -268,15 +332,22 @@ public partial class Pages_LeadsReceiver2 : System.Web.UI.Page
                 sStatusId = _sql.ExecuteScalar(String.Format("SELECT Id FROM _LeadStatus WHERE (Name='{0}' AND isdeleted=0)", "New Lead")).ToString();
 
                 // get assigned code
-                try
+                if (strreferrerUrl.Contains("shareasale"))
                 {
-                    ssql = String.Format("SELECT COALESCE((SELECT AssignedToId FROM _Leadassign WHERE Customer = {0} AND isdeleted=0),(SELECT Id FROM Employee WHERE (isMasterSales=1 AND isdeleted=0)))", intID);
-                    sAssignedToId = _sql.ExecuteScalar(ssql).ToString();
+                    sAssignedToId = "7D5AA961-5478-4FA1-B5DB-D6A2071ED834";
                 }
-                catch (Exception ex)
+                else
                 {
-                    Tools.sendMail(from, torene, "Lead AssignTo Error", String.Format("{0} {1}", ex.Message, String.Format("SELECT AssignedToId FROM _Leadassign WHERE Customer = {0} AND isdeleted=0", intID)), false);
-                    sAssignedToId = "0BA4012E-5541-4A76-92BB-C7122344DC3A";
+                    try
+                    {
+                        ssql = String.Format("SELECT COALESCE((SELECT AssignedToId FROM _Leadassign WHERE Customer = {0} AND isdeleted=0),(SELECT Id FROM Employee WHERE (isMasterSales=1 AND isdeleted=0)))", intID);
+                        sAssignedToId = _sql.ExecuteScalar(ssql).ToString();
+                    }
+                    catch (Exception ex)
+                    {
+                        Tools.sendMail(from, torene, "Lead AssignTo Error", String.Format("{0} {1}", ex.Message, String.Format("SELECT AssignedToId FROM _Leadassign WHERE Customer = {0} AND isdeleted=0", intID)), false);
+                        sAssignedToId = "7D5AA961-5478-4FA1-B5DB-D6A2071ED834";
+                    }
                 }
 
                 // get timezone
@@ -297,8 +368,8 @@ public partial class Pages_LeadsReceiver2 : System.Web.UI.Page
                 if (strPhone.Length > 16) { strPhone = strPhone.Substring(strPhone.Length - 16, 16); }
                 if (strNote.Length > 4095) { strNote = strNote.Substring(0, 4095); }
 
-                ssql = String.Format("INSERT INTO Lead_Flat(Customer, Name, EMail, Phone, EntryDate, CallLaterDate, SourceId, Source, PriorityId, Priority, StatusId, Status, LeadNote, AssignedToId, AssignedTo, TimeZone, isdeleted) " +
-                                           "SELECT '{0}','{1}','{2}','{3}','{4}','{5}',({6}),'{7}','{8}',({9}),'{10}',({11}),'{12}','{13}',({14}),'{15}',{16} " +
+                ssql = String.Format("INSERT INTO Lead_Flat(Customer, Name, EMail, Phone, EntryDate, CallLaterDate, SourceId, Source, PriorityId, Priority, StatusId, Status, LeadNote, AssignedToId, AssignedTo, TimeZone,sourcePage,referrerUrl, isdeleted) " +
+                                           "SELECT '{0}','{1}','{2}','{3}','{4}','{5}',({6}),'{7}','{8}',({9}),'{10}',({11}),'{12}','{13}',({14}),'{15}','{16}','{17}',{18} " +
                                            "",
                                            intID,
                                            strName.Replace("'", "''"),
@@ -316,6 +387,8 @@ public partial class Pages_LeadsReceiver2 : System.Web.UI.Page
                                            sAssignedToId,
                                            String.Format("SELECT DisplayName FROM Employee WHERE Upper(Id) = '{0}' AND isdeleted = 0", sAssignedToId.ToUpper()),
                                            strTimeZone,
+                                           strsourcePage.Replace("'", "''"),
+                                           strreferrerUrl.Replace("'", "''"),
                                            0);
                 _sql.Execute(ssql);
 
@@ -477,8 +550,10 @@ public partial class Pages_LeadsReceiver2 : System.Web.UI.Page
                                     "       t.Status = (SELECT Name FROM _LeadStatus WHERE Id = '{6}' AND isdeleted = 0), " +
                                     "       t.LeadNote = '{7}', " +
                                     "       t.AssignedToId = '{8}', " +
-                                    "       t.AssignedTo = (SELECT DisplayName FROM Employee WHERE Upper(Id) = '{0}' AND isdeleted = 0) " +
-                                    "   FROM Lead_Flat t "  +
+                                    "       t.AssignedTo = (SELECT DisplayName FROM Employee WHERE Upper(Id) = '{8}' AND isdeleted = 0), " +
+                                    "       t.sourcePage = '{9}', " +
+                                    "       t.referrerUrl = '{10}' " +
+                                    "   FROM Lead_Flat t " +
                                     " WHERE Customer = {0} AND isdeleted = 0",
                                     intID,
                                     strName.Replace("'", "''"),
@@ -488,7 +563,9 @@ public partial class Pages_LeadsReceiver2 : System.Web.UI.Page
                                     sPriorityId,
                                     sStatusId,
                                     strNote.Replace("''", "'").Replace("'", "''"),
-                                    sAssignedToId);
+                                    sAssignedToId,
+                                    strsourcePage.Replace("'", "''"),
+                                    strreferrerUrl.Replace("'", "''"));
                 _sql.Execute(ssql);
                 strNote = dr["LeadNote"].ToString();
             }

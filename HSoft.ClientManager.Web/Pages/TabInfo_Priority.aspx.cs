@@ -148,7 +148,7 @@ public partial class Pages_TabInfo_Sold : System.Web.UI.Page
         String ssql = String.Empty;
         HSoft.SQL.SqlServer _sql = new SqlServer(System.Configuration.ConfigurationManager.ConnectionStrings["ClientManager"].ConnectionString);
 
-        ssql = String.Format("SELECT lf.Id, lf.ConstantContactID, lf.Customer, lf.Name, lf.EMail, lf.Phone, lf.EntryDate, lf.CallLaterDate, lf.SourceId, lf.Source, lf.PriorityId, lf.Priority, lf.StatusId, lf.Status, lf.MsgHistory, lf.LeadNote, dbo.fromHDR(lf.SalesNote) SalesNote, lf.AssignedToId, lf.AssignedTo, lf.TimeZone, lf.createdby, lf.createdate, lf.updatedby, lf.updatedate, lf.isdeleted " +
+        ssql = String.Format("SELECT TOP 50 lf.Id, lf.ConstantContactID, lf.Customer, lf.Name, lf.EMail, lf.Phone, lf.EntryDate, lf.CallLaterDate, lf.SourceId, lf.Source, lf.PriorityId, lf.Priority, lf.StatusId, lf.Status, lf.MsgHistory, lf.LeadNote, dbo.fromHDR(lf.SalesNote) SalesNote, lf.AssignedToId, lf.AssignedTo, lf.TimeZone, lf.createdby, lf.createdate, lf.updatedby, lf.updatedate, lf.isdeleted " +
                              "  FROM Lead_Flat lf, EmployeeHirarchy eh " +
                              " WHERE lf.PriorityId = '{2}' " +
                              "   AND lf.AssignedToId = eh.SubEmployeeId " +

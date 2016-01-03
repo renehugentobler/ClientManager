@@ -17,7 +17,7 @@ using HSoft.SQL;
 
 using HSoft.ClientManager.Web;
 
-public partial class ltest : System.Web.UI.Page
+public partial class ltest2 : System.Web.UI.Page
 {
     private Grid grid1;
     private Window window1;
@@ -41,28 +41,29 @@ public partial class ltest : System.Web.UI.Page
         String ssql = String.Empty;
         HSoft.SQL.SqlServer _sql = new SqlServer(System.Configuration.ConfigurationManager.ConnectionStrings["ClientManager"].ConnectionString);
 
-        ssql = "SELECT * FROM Employee WHERE isdeleted = 0";
-        _dtEmployee = _sql.GetTable(ssql);
-
         String sassigned = Session["ghirarchy"].ToString();
         sassigned = String.Format("{0}{1}", sassigned.Replace(",", "','"), Guid.Empty);
-        sdsLeadFlat.SelectCommand = String.Format("SELECT DISTINCT l.*, " +
-                                                  " CASE (SELECT COUNT(*) FROM CampainActivity ca WHERE l.ConstantContactID = ca.ContactId AND ca.isdeleted = 0) " +
-                                                  "   WHEN 0 THEN " +
-                                                  "     CASE WHEN sc.Respondent IS NULL AND sc2.EmailAddress IS NULL THEN '' " +
-                                                  "     ELSE " +
-                                                  "       '<button onclick=''return false;''>S</button>' " +
-                                                  "     END " +
-                                                  "   ELSE " +
-                                                  "     CASE WHEN sc.Respondent IS NULL AND sc2.EmailAddress IS NULL THEN  " +
-                                                  "        '<font color=red size=2>C</font>' " +
-                                                  "     ELSE " +
-                                                  "       '<button onclick=''return false;''><font color=red>S</font></button>' " +
-                                                  "     END " +
-                                                  " END Survey " +
+        sdsLeadFlat.SelectCommand = String.Format("SELECT TOP 10  " +
+                                                  "       l.[Id] " +
+                                                  "      ,l.[ConstantContactID] " +
+                                                  "      ,l.[Customer] " +
+                                                  "      ,l.[Name] " +
+                                                  "      ,l.[EMail] " +
+                                                  "      ,l.[Phone] " +
+                                                  "      ,l.[EntryDate] " +
+                                                  "      ,l.[CallLaterDate] " +
+                                                  "      ,l.[PriorityId] " +
+                                                  "      ,l.[Priority] " +
+                                                  "      ,l.[StatusId] " +
+                                                  "      ,l.[Status] " +
+                                                  "      , '' [LeadNote] " + // l.[LeadNote] " +
+                                                  "      , '' [SalesNote] " + // l.[SalesNote] " +
+                                                  "      ,l.[AssignedToId] " +
+                                                  "      ,l.[AssignedTo] " +
+                                                  "      ,l.[TimeZone] " +
+                                                  "      , '' [sourcePage] " + // l.[sourcePage] " + //  " +
+                                                  "      , '' [sourcePage] " + //l.[referrerUrl] " + //  " +
                                                   "  FROM _LeadPriority p, Lead_Flat l " +
-                                                  "    LEFT JOIN SurveyCustomer sc ON l.EMail = sc.Respondent AND sc.isdeleted = 0 " +
-                                                  "    LEFT JOIN SurveyCustomer sc2 ON l.EMail = sc2.EmailAddress AND sc2.isdeleted = 0 " +
                                                   " WHERE AssignedToId IN ('{0}') " +
                                                   "   AND l.PriorityId = p.Id "  +
                                                   "   AND ( " +
@@ -78,6 +79,7 @@ public partial class ltest : System.Web.UI.Page
         grid1.Serialize = false;
         grid1.AutoGenerateColumns = false;
         grid1.CallbackMode = false;
+
         grid1.ClientSideEvents.OnBeforeClientEdit = "Grid1_ClientEdit";
         grid1.ClientSideEvents.ExposeSender = true;
         grid1.FolderStyle = "styles/grid/premiere_blue";
@@ -88,6 +90,28 @@ public partial class ltest : System.Web.UI.Page
         grid1.AllowFiltering = true;
 //        grid1.ShowFooter = false;
         grid1.EnableRecordHover = true;
+
+        grid1.AllowColumnReordering = true;
+        grid1.AllowColumnResizing = true;
+        grid1.AllowDataAccessOnServer = true;
+        grid1.AllowPaging = true;
+        grid1.ShowTotalNumberOfPages = false;
+        grid1.AllowManualPaging = false;
+        grid1.ScrollingSettings.FixedColumnsPosition = GridFixedColumnsPositionType.Left;
+        grid1.ScrollingSettings.NumberOfFixedColumns = 2;
+        grid1.ScrollingSettings.ScrollHeight = int.Parse(Session["wy"].ToString()) - 140;
+
+        if (int.Parse(Session["wx"].ToString()) - 210 < 1220)
+        {
+            grid1.ScrollingSettings.ScrollWidth = int.Parse(Session["wx"].ToString()) - 210;
+        }
+        else
+        {
+            grid1.ScrollingSettings.ScrollWidth = 1220;
+        }
+
+        grid1.PageSize = (int.Parse(Session["wy"].ToString()) - 150) / 25;
+
 
         grid1.ClientSideEvents.OnClientSelect = "onClientSelect";
 
@@ -121,7 +145,7 @@ public partial class ltest : System.Web.UI.Page
         oCol2.ID = "Column2";
         oCol2.DataField = "Name";
         oCol2.HeaderText = "Name";
-        oCol2.Width = "120";
+        oCol2.Width = "140";
         oCol2.AllowSorting=true;
         oCol2.Wrap=true;
         oCol2.AllowFilter = true;
@@ -135,7 +159,7 @@ public partial class ltest : System.Web.UI.Page
         oCol3.ID = "Column3";
         oCol3.DataField = "EMail";
         oCol3.HeaderText = "EMail";
-        oCol3.Width = "180";
+        oCol3.Width = "200";
         oCol3.AllowSorting=true;
         oCol3.Wrap=true;
         oCol3.AllowFilter = true;
@@ -149,7 +173,7 @@ public partial class ltest : System.Web.UI.Page
         oCol4.ID = "Column4";
         oCol4.DataField = "Phone";
         oCol4.HeaderText = "Phone";
-        oCol4.Width = "90";
+        oCol4.Width = "110";
         oCol4.AllowSorting = true;
         oCol4.Wrap = false;
         oCol4.AllowFilter = true;
@@ -193,15 +217,6 @@ public partial class ltest : System.Web.UI.Page
         oCol7.NullDisplayText = "missing!";
         oCol7.ApplyFormatInEditMode = true;
 
-        Column oCol8 = new Column();
-        oCol8.ID = "Column8";
-        oCol8.DataField = "Source";
-        oCol8.HeaderText = "Source";
-        oCol8.Width = "80";
-        oCol8.AllowSorting = true;
-        oCol8.Wrap = false;
-        oCol8.AllowFilter = true;
-
         Column oCol9 = new Column();
         oCol9.ID = "Column9";
         oCol9.DataField = "Priority";
@@ -224,15 +239,6 @@ public partial class ltest : System.Web.UI.Page
         oCol10.ShowFilterCriterias = false;
         oCol10.TemplateSettings.FilterTemplateId = "TemplateAssignedTo";
 
-        Column oCol11 = new Column();
-        oCol11.ID = "Column11";
-        oCol11.DataField = "MsgHistory";
-        oCol11.HeaderText = "History";
-        oCol11.Width = "60";
-        oCol11.AllowSorting = false;
-        oCol11.Wrap = true;
-        oCol11.AllowFilter = false;
-
         Column oCol12 = new Column();
         oCol12.ID = "Column12";
         oCol12.DataField = "LeadNote";
@@ -245,6 +251,7 @@ public partial class ltest : System.Web.UI.Page
         oCol12.HtmlEncode = true;
         oCol12.FilterOptions.Add(new FilterOption(FilterOptionType.NoFilter));
         oCol12.FilterOptions.Add(new FilterOption(FilterOptionType.Contains));
+        oCol12.Visible = false;
 
         Column oCol13 = new Column();
         oCol13.ID = "Column13";
@@ -258,6 +265,7 @@ public partial class ltest : System.Web.UI.Page
         oCol13.HtmlEncode = true;
         oCol13.FilterOptions.Add(new FilterOption(FilterOptionType.NoFilter));
         oCol13.FilterOptions.Add(new FilterOption(FilterOptionType.Contains));
+        oCol13.Visible = false;
 
         Column oCol14 = new Column();
         oCol14.ID = "Column14";
@@ -271,21 +279,6 @@ public partial class ltest : System.Web.UI.Page
         oCol14.ShowFilterCriterias = false;
         oCol14.TemplateSettings.FilterTemplateId = "TemplateStatus";
 
-        Column oCol15 = new Column();
-        oCol15.ID = "Column15";
-        oCol15.DataField = "Survey";
-        oCol15.HeaderText = " ";
-        oCol15.Visible = true;
-        oCol15.ReadOnly = true;
-        oCol15.Width = "35";
-        oCol15.AllowSorting = true;
-        oCol15.AllowFilter = true;
-        oCol15.ParseHTML = true;
-        oCol15.HtmlEncode = true;
-        oCol15.FilterOptions.Add(new FilterOption(FilterOptionType.NoFilter));
-        oCol15.FilterOptions.Add(new FilterOption(FilterOptionType.IsEmpty));
-        oCol15.FilterOptions.Add(new FilterOption(FilterOptionType.IsNotEmpty));
-
         // add the columns to the Columns collection of the grid
         grid1.Columns.Add(oCol0);
         grid1.Columns.Add(oCol1);
@@ -296,16 +289,12 @@ public partial class ltest : System.Web.UI.Page
         grid1.Columns.Add(oCol7);
         grid1.Columns.Add(oCol9);
 
-        grid1.Columns.Add(oCol15);
-
         grid1.Columns.Add(oCol13);
         grid1.Columns.Add(oCol12);
         grid1.Columns.Add(oCol14);
 
         grid1.Columns.Add(oCol3);
-        grid1.Columns.Add(oCol11);
         grid1.Columns.Add(oCol6);
-        grid1.Columns.Add(oCol8);
         grid1.Columns.Add(oCol10);
 
         GridRuntimeTemplate HeadingTemplate = new GridRuntimeTemplate();
@@ -523,13 +512,6 @@ public partial class ltest : System.Web.UI.Page
         field6.ApplyFormatInEditMode = true;
         field6.NullDisplayText = "missing!";
 
-        Obout.SuperForm.BoundField field7 = new Obout.SuperForm.BoundField();
-        field7.DataField = "Source";
-        field7.HeaderText = "Source";
-        field7.FieldSetID = "FieldSet1";
-        field7.AllowEdit = false;
-        field7.Enabled = false;
-
         Obout.SuperForm.DropDownListField field8 = new Obout.SuperForm.DropDownListField();
         field8.DataField = "Priority";
         field8.HeaderText = "Priority";
@@ -545,13 +527,6 @@ public partial class ltest : System.Web.UI.Page
         field9.AllowEdit = true;
         field9.Enabled = true;
         field9.DataSourceID = "sdsSalesPeople";
-
-        Obout.SuperForm.BoundField field10 = new Obout.SuperForm.BoundField();
-        field10.DataField = "MsgHistory";
-        field10.HeaderText = "History";
-        field10.FieldSetID = "FieldSet1";
-        field10.AllowEdit = false;
-        field10.Enabled = false;
 
         Obout.SuperForm.MultiLineField field11 = new Obout.SuperForm.MultiLineField();
         field11.DataField = "LeadNote";
@@ -601,10 +576,8 @@ public partial class ltest : System.Web.UI.Page
         SuperForm1.Fields.Add(field4);
         SuperForm1.Fields.Add(field5);
         SuperForm1.Fields.Add(field6);
-        SuperForm1.Fields.Add(field7);
         SuperForm1.Fields.Add(field8);
         SuperForm1.Fields.Add(field9);
-        SuperForm1.Fields.Add(field10);
 
         SuperForm1.Fields.Add(field11);
         SuperForm1.Fields.Add(field12);
@@ -986,7 +959,7 @@ public partial class ltest : System.Web.UI.Page
         _listComboBox[0].Height = Unit.Pixel(15);
         _listComboBox[0].Mode = ComboBoxMode.TextBox;
         _listComboBox[0].Enabled = false;
-        _listComboBox[0].Items.Add(new ComboBoxItem("Lead Sales 1.0.12"));
+        _listComboBox[0].Items.Add(new ComboBoxItem("Lead Sales 1.1.01"));
         _listComboBox[0].SelectedIndex = 0;
         e.Container.Controls.Add(_listComboBox[0]);
         foreach (String sguid in Session["ghirarchy"].ToString().Split(','))
@@ -1028,12 +1001,6 @@ public partial class ltest : System.Web.UI.Page
             button2.OnClientClick = "cancelChanges(); return false;";
             button2.Width = 75;
 
-            Obout.Interface.OboutButton button3 = new Obout.Interface.OboutButton();
-            button3.ID = "OboutButton3";
-            button3.Text = "Survey";
-            button3.OnClientClick = "survey(); return false;"; 
-            button3.Width = 75;
-
             Obout.Interface.OboutButton button4 = new Obout.Interface.OboutButton();
             button4.ID = "OboutButton4";
             button4.Text = "EMail";
@@ -1042,9 +1009,9 @@ public partial class ltest : System.Web.UI.Page
 
             templatePlaceHolder.Controls.Add(button1);
             templatePlaceHolder.Controls.Add(button2);
-            templatePlaceHolder.Controls.Add(button3);
             templatePlaceHolder.Controls.Add(button4);
         
         }
     }
+
 }

@@ -91,11 +91,11 @@ public partial class CCMail_Menu : System.Web.UI.Page
 
                     DateTime _lastmod;
 
-                    _lastmod = DateTime.Parse(_sql.ExecuteScalar("SELECT [TimeStamp] FROM CC_TimeStamps WHERE [Name] = 'LastDateEmailCampaigns' AND isdeleted = 0").ToString());
-                    UpdateEmailCampaigns(_lastmod);
+//                    _lastmod = DateTime.Parse(_sql.ExecuteScalar("SELECT [TimeStamp] FROM CC_TimeStamps WHERE [Name] = 'LastDateEmailCampaigns' AND isdeleted = 0").ToString());
+//                    UpdateEmailCampaigns(_lastmod);
 
-                    _lastmod = DateTime.Parse(_sql.ExecuteScalar("SELECT [TimeStamp] FROM CC_TimeStamps WHERE [Name] = 'LastDateOpenActivities' AND isdeleted = 0").ToString());
-                    UpdateEmailCampaignOpens(_lastmod);
+//                    _lastmod = DateTime.Parse(_sql.ExecuteScalar("SELECT [TimeStamp] FROM CC_TimeStamps WHERE [Name] = 'LastDateOpenActivities' AND isdeleted = 0").ToString());
+//                    UpdateEmailCampaignOpens(_lastmod);
 
                     _lastmod = DateTime.Parse(_sql.ExecuteScalar("SELECT [TimeStamp] FROM CC_TimeStamps WHERE [Name] = 'LastDateContacts' AND isdeleted = 0").ToString());
                     UpdateContacts(_lastmod);

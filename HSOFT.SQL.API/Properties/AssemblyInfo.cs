@@ -1,16 +1,16 @@
-using System.Reflection;
+﻿using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("HSoft.ClientManager.WebAPI")]
+[assembly: AssemblyTitle("HSOFT.SQL.API")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("HSoft.ClientManager.WebAPI")]
-[assembly: AssemblyCopyright("Copyright �  2014")]
+[assembly: AssemblyProduct("HSOFT.SQL.API")]
+[assembly: AssemblyCopyright("Copyright ©  2015")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("f64bb080-32bd-4c7a-927a-c793b2d9e4f7")]
+[assembly: Guid("6abf4cbb-8780-496e-9d62-d00c6d7402a9")]
 
 // Version information for an assembly consists of the following four values:
 //

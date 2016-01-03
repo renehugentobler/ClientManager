@@ -200,7 +200,18 @@ public partial class Pages_LeadsReceiver : System.Web.UI.Page
                     Tools.sendMail(from, torene, "Lead AssignTo Error", String.Format("{0} {1}", ex.Message, String.Format("SELECT AssignedToId FROM _Leadassign WHERE Customer = {0}", intID)), false);
                     sAssignedToId = _sql.ExecuteScalar(String.Format("SELECT Id FROM Employee WHERE (isMasterSales=1 AND isdeleted=0)", "")).ToString();
                 }
-                String sAssignedToName = _sql.ExecuteScalar(String.Format("SELECT DisplayName FROM Employee WHERE Id = '{0}' AND isdeleted = 0", sAssignedToId)).ToString();
+
+                String sAssignedToName = string.Empty;
+
+                try
+                {
+                    sAssignedToName = _sql.ExecuteScalar(String.Format("SELECT DisplayName FROM Employee WHERE Id = '{0}' AND isdeleted = 0", sAssignedToId)).ToString();
+                }
+                catch
+                {
+                    sAssignedToId = "44F7B957-4AA9-466F-B5C8-8840586157B6";
+                    sAssignedToName = _sql.ExecuteScalar(String.Format("SELECT DisplayName FROM Employee WHERE Id = '{0}' AND isdeleted = 0", sAssignedToId)).ToString();
+                }
 
                 if (!String.IsNullOrEmpty(strNote)) { strComments = String.Format("{0} {1}", strNote.Trim(), strComments.Trim()); }
 

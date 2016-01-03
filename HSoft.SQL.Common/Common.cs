@@ -290,7 +290,7 @@
                                                                    " WHERE username = '{0}' " +
                                                                    "   AND password = '{1}' " +
                                                                    "   AND IsDeleted = 0 " +
-                                                                   "   AND IsActive = 1 " +
+//                                                                   "   AND IsActive = 1 " +
                                                                    "   AND UserId IN (SELECT Id FROM Employee WHERE isdeleted = 0 AND isactive=1) " +
                                                                    "", sname, spass)).ToString());
             }

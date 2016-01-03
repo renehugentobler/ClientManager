@@ -280,7 +280,7 @@ public partial class Pages_Email_Promo_Send : System.Web.UI.Page
         String sassigned = Session["ghirarchy"].ToString();
         sassigned = String.Format("{0}{1}", sassigned.Replace(",", "','"), Guid.Empty);
 
-        ssql = "SELECT TOP 500 ";
+        ssql = "SELECT TOP 50 ";
         foreach (DataRow dr in _dtPromos.Rows)
         {
             ssql = String.Format("{0} " +

@@ -39,10 +39,7 @@
 					    <osm:Child id="StartInfo" OnClientClick="LoadMainPage('TabInfo')">My Info</osm:Child>
 				    <osm:Parent id="Lead">Sales</osm:Parent>
                         <osm:Child id="LeadSales" OnClientClick="LoadMainPage('ltest')">Leads Sales</osm:Child>
-                        <osm:Child id="LeadSalesx2" OnClientClick="LoadMainPage('ltest2')">Leads Sales 2</osm:Child>
                         <osm:Child id="LeadSales2" OnClientClick="LoadMainPage('LeadSales')">Quick Leads</osm:Child>
-                        <osm:Child id="LeadSales3" OnClientClick="LoadMainPage('LeadSales2')">Contest Leads</osm:Child>
-                        <osm:Child id="LeadSales4" OnClientClick="LoadMainPage('LeadPerformace')">Fast Leads</osm:Child>
                         <osm:Child ID="LeadPromoEmails" OnClientClick="LoadMainPage('Email_Promo_Send')">Promo Emails</osm:Child>
                     <osm:Parent id="Survey">Surveys</osm:Parent>
 				    <osm:Parent id="Configuration" >Configuration</osm:Parent>
